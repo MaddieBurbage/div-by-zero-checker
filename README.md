@@ -60,7 +60,11 @@ on types, to indicate more precisely what values the type represents.
 Here is a list of the type qualifiers that are supported by
 the Divide By Zero Checker, with an explanation of each one:
 
-TODO.
+Top: Any int or long
+Zero: Values that are known to be zero
+Bottom: Undefined values following a divide-by-zero operation.
+
+This checker has a very small lattice and basic transfer functions so it only catches limited divide-by-zero errors.
 
 
 ## How to build the checker

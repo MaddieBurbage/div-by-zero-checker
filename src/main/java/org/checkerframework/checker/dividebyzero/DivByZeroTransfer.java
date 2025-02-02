@@ -1,6 +1,7 @@
 package org.checkerframework.checker.dividebyzero;
 
 import java.lang.annotation.Annotation;
+import java.util.Iterator;
 import java.util.Set;
 import javax.lang.model.element.AnnotationMirror;
 import org.checkerframework.checker.dividebyzero.qual.*;
@@ -76,8 +77,15 @@ public class DivByZeroTransfer extends CFTransfer {
    */
   private AnnotationMirror refineLhsOfComparison(
       Comparison operator, AnnotationMirror lhs, AnnotationMirror rhs) {
-    // TODO
-    return lhs;
+    AnnotationMirror bottom = bottom();
+    AnnotationMirror top = top();
+    AnnotationMirror zero = zero();
+    if (operator.equals(Comparison.EQ)) {
+      if(zero == lhs || zero == rhs) {
+        return zero;
+      }
+    }
+    return top();
   }
 
   /**
@@ -97,7 +105,45 @@ public class DivByZeroTransfer extends CFTransfer {
    */
   private AnnotationMirror arithmeticTransfer(
       BinaryOperator operator, AnnotationMirror lhs, AnnotationMirror rhs) {
-    // TODO
+    AnnotationMirror bottom = bottom();
+    AnnotationMirror top = top();
+    AnnotationMirror zero = zero();
+    switch (operator) {
+      case PLUS:
+        if(bottom == lhs || bottom == rhs) {
+          return bottom;
+        }
+        if(top == lhs || top == rhs) {
+          return top;
+        }
+        return zero;
+      case MINUS:
+        if(bottom == lhs || bottom == rhs) {
+          return bottom;
+        }
+        if(top == lhs || top == rhs) {
+          return top;
+        }
+        return zero;
+      case TIMES:
+        if(bottom == lhs || bottom == rhs) {
+          return bottom;
+        }
+        if(zero == lhs || zero == rhs) {
+          return zero;
+        }
+        return top;
+      case DIVIDE:
+        if(bottom == lhs || bottom == rhs || zero == rhs) {
+          return bottom;
+        }
+        if(top == lhs) {
+          return top;
+        }
+        return zero;
+      case MOD:
+        break;
+    }
     return top();
   }
 
@@ -107,6 +153,11 @@ public class DivByZeroTransfer extends CFTransfer {
   /** Get the top of the lattice */
   private AnnotationMirror top() {
     return analysis.getTypeFactory().getQualifierHierarchy().getTopAnnotations().iterator().next();
+  }
+
+  /** Get zero from the lattice */
+  private AnnotationMirror zero() {
+    return reflect(Zero.class);
   }
 
   /** Get the bottom of the lattice */
